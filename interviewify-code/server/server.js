@@ -1,24 +1,37 @@
-const express = require('express')
-const mongoose = require('mongoose')
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+const morgan = require('morgan');
+// const session = require("express-session");
+const passport = require("passport");
+require('./passport')
+
+//setup routes
+const userRoute = require('./routes/user')
+const authRoute = require('./routes/auth')
+
+//config environment variables
 require('dotenv').config()
 
 //setup express
 var app = express()
 var PORT = process.env.PORT || 4000
-app.use(express.json())
+const origin = "http://localhost:3000"
 
-//setup routes
-const userRoute = require('./routes/user')
+//
+//  MIDDLEWARE
+//
+app.use(require('express-session')({ secret: 'goatalert@#%@#', resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: origin, credentials: true }));
+app.use(morgan("dev"));
+app.use(helmet());
 
-//setup mongoose connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch(err => ('❌ Error connecting to MongoDB: ' + err))
-
-
-//middleware
+//logger
 const logger = (req, res, next) => {
   const currentDate = new Date()
   const logTime = `${currentDate
@@ -37,8 +50,21 @@ const logger = (req, res, next) => {
 }
 app.use(logger)
 
-//use routers and listen 
+//
+// DB Connection 
+//
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+  })
+  .catch(err => ('❌ Error connecting to MongoDB: ' + err))
+
+
+
+//use routes and listen 
 app.use('/user', userRoute)
+app.use('/auth', authRoute)
+
 app.listen(PORT, () => {
   console.log(`✅ Server listening on POST ${PORT}`);
 })
