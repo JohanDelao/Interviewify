@@ -10,6 +10,7 @@ require('./passport')
 //setup routes
 const userRoute = require('./routes/user')
 const authRoute = require('./routes/auth')
+const gptRoute = require('./routes/gpt')
 
 //config environment variables
 require('dotenv').config()
@@ -64,6 +65,7 @@ mongoose.connect(process.env.MONGO_URI)
 //use routes and listen 
 app.use('/user', userRoute)
 app.use('/auth', authRoute)
+app.use('/gpt', gptRoute)
 
 app.listen(PORT, () => {
   console.log(`✅ Server listening on POST ${PORT}`);
